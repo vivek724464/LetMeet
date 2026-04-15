@@ -31,8 +31,45 @@ export const createSchedule = async (req, res) => {
 
 export const updateSchedule = async (req, res) => {
   try {
-    const updated = await Schedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Schedule.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
+      { returnDocument: 'after' }
+    );
     res.json(updated);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const addOverride = async (req, res) => {
+  try {
+    const { scheduleId } = req.params;
+    const newOverride = req.body; 
+
+    const updatedSchedule = await Schedule.findByIdAndUpdate(
+      scheduleId,
+      { $push: { overrides: newOverride } },
+      { returnDocument: 'after' } 
+    );
+
+    res.json(updatedSchedule);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const deleteOverride = async (req, res) => {
+  try {
+    const { scheduleId, overrideId } = req.params;
+    
+    const updatedSchedule = await Schedule.findByIdAndUpdate(
+      scheduleId,
+      { $pull: { overrides: { id: overrideId } } },
+      { returnDocument: 'after' }
+    );
+
+    res.json(updatedSchedule);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

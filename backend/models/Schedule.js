@@ -13,11 +13,20 @@ const scheduleSchema = new mongoose.Schema({
     id: String, 
     date: String,
     isAvailable: Boolean,
-    start: String,
-    end: String
+    blocks: [{
+      start: String,
+      end: String
+    }]
   }]
 }, { timestamps: true });
 
-scheduleSchema.set('toJSON', { virtuals: true, transform: (doc, ret) => { ret.id = ret._id; delete ret._id; delete ret.__v; } });
+scheduleSchema.set('toJSON', { 
+  virtuals: true, 
+  transform: (doc, ret) => { 
+    ret.id = ret._id; 
+    delete ret._id; 
+    delete ret.__v; 
+  } 
+});
 
 export default mongoose.model('Schedule', scheduleSchema);

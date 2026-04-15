@@ -57,7 +57,7 @@ export default function EventTypesPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-        <h1 className="text-3xl font-normal text-gray-800">Event Types</h1>
+        <h1 className="text-3xl font-normal text-gray-800">Events</h1>
         <button 
           onClick={openNewModal}
           className="px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"

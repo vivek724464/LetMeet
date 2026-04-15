@@ -64,7 +64,7 @@ export default function MeetingsPage() {
 
   return (
     <div className="max-w-5xl mx-auto font-sans">
-      <h1 className="text-3xl font-normal text-gray-800 mb-8">Scheduled Events</h1>
+      <h1 className="text-3xl font-normal text-gray-800 mb-8">Scheduled Meetings</h1>
 
       <div className="flex gap-6 border-b border-gray-200 mb-6">
         <button 

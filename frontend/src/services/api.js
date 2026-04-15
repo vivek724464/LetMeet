@@ -1,100 +1,105 @@
-// src/services/api.js
 
-// Fake Database (Simulating MongoDB)
-let db = {
-  events: [
-    { id: '1', title: '30 Minute Meeting', duration: 30, slug: '30min', bufferBefore: 0, bufferAfter: 15 },
-  ],
-availability: {
-    schedules: [
-      {
-        id: '1',
-        name: 'Working Hours',
-        timezone: 'India Standard Time (IST)',
-        defaultHours: [
-          { day: 'SUNDAY', active: false, start: '09:00', end: '17:00' },
-          { day: 'MONDAY', active: true, start: '09:00', end: '17:00' },
-          { day: 'TUESDAY', active: true, start: '09:00', end: '17:00' },
-          { day: 'WEDNESDAY', active: true, start: '09:00', end: '17:00' },
-          { day: 'THURSDAY', active: true, start: '09:00', end: '17:00' },
-          { day: 'FRIDAY', active: true, start: '09:00', end: '16:00' },
-          { day: 'SATURDAY', active: false, start: '09:00', end: '17:00' },
-        ],
-        overrides: []
-      }
-    ]
-  },
-  meetings: []
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
+const handleResponse = async (response) => {
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Something went wrong on the server');
+  }
+  return data;
 };
 
-// API Methods
 export const api = {
   // --- EVENT TYPES ---
-  getEvents: async () => [...db.events],
-  createEvent: async (eventData) => {
-    const newEvent = { id: Date.now().toString(), ...eventData };
-    db.events.push(newEvent);
-    return newEvent;
+  getEvents: async () => {
+    const res = await fetch(`${BASE_URL}/events`);
+    return handleResponse(res);
   },
-  deleteEvent: async (id) => {
-    db.events = db.events.filter(e => e.id !== id);
-    return true;
+  createEvent: async (eventData) => {
+    const res = await fetch(`${BASE_URL}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData)
+    });
+    return handleResponse(res);
   },
   updateEvent: async (id, eventData) => {
-    const index = db.events.findIndex(e => e.id === id);
-    if (index !== -1) {
-      db.events[index] = { ...db.events[index], ...eventData };
-      return db.events[index];
-    }
-    throw new Error("Event not found");
+    const res = await fetch(`${BASE_URL}/events/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData)
+    });
+    return handleResponse(res);
+  },
+  deleteEvent: async (id) => {
+    const res = await fetch(`${BASE_URL}/events/${id}`, {
+      method: 'DELETE'
+    });
+    return handleResponse(res);
   },
 
   // --- MEETINGS ---
-  getMeetings: async () => [...db.meetings],
+  getMeetings: async () => {
+    const res = await fetch(`${BASE_URL}/meetings`);
+    return handleResponse(res);
+  },
   createMeeting: async (meetingData) => {
-    // Check for double booking (Core Requirement)
-    const isConflict = db.meetings.some(m => m.date === meetingData.date && m.time === meetingData.time);
-    if (isConflict) throw new Error("Time slot already booked!");
-
-    const newMeeting = { id: Date.now().toString(), status: 'upcoming', ...meetingData };
-    db.meetings.push(newMeeting);
-    return newMeeting;
+    const res = await fetch(`${BASE_URL}/meetings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(meetingData)
+    });
+    return handleResponse(res);
   },
   cancelMeeting: async (id) => {
-    const meeting = db.meetings.find(m => m.id === id);
-    if (meeting) meeting.status = 'cancelled';
-    return true;
+    const res = await fetch(`${BASE_URL}/meetings/${id}/cancel`, {
+      method: 'PUT'
+    });
+    return handleResponse(res);
   },
-  // --- AVAILABILITY ---
+  rescheduleMeeting: async (id, newDate, newTime) => {
+    const res = await fetch(`${BASE_URL}/meetings/${id}/reschedule`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: newDate, time: newTime })
+    });
+    return handleResponse(res);
+  },
+
+  // --- AVAILABILITY SCHEDULES ---
   getSchedules: async () => {
-    return JSON.parse(JSON.stringify(db.availability.schedules));
-  },
-  saveSchedule: async (scheduleData) => {
-    const index = db.availability.schedules.findIndex(s => s.id === scheduleData.id);
-    if (index !== -1) {
-      db.availability.schedules[index] = JSON.parse(JSON.stringify(scheduleData));
-    } else {
-      db.availability.schedules.push(JSON.parse(JSON.stringify(scheduleData)));
-    }
-    return true;
+    const res = await fetch(`${BASE_URL}/schedules`);
+    return handleResponse(res);
   },
   createSchedule: async (name) => {
-    const newSchedule = {
-      id: Date.now().toString(),
-      name: name,
-      timezone: 'India Standard Time (IST)',
-      defaultHours: [
-        { day: 'SUNDAY', active: false, start: '09:00', end: '17:00' },
-        { day: 'MONDAY', active: true, start: '09:00', end: '17:00' },
-        { day: 'TUESDAY', active: true, start: '09:00', end: '17:00' },
-        { day: 'WEDNESDAY', active: true, start: '09:00', end: '17:00' },
-        { day: 'THURSDAY', active: true, start: '09:00', end: '17:00' },
-        { day: 'FRIDAY', active: true, start: '09:00', end: '17:00' },
-        { day: 'SATURDAY', active: false, start: '09:00', end: '17:00' },
-      ],
-      overrides: []
-    };
-    db.availability.schedules.push(newSchedule);
-    return JSON.parse(JSON.stringify(newSchedule));
+    const res = await fetch(`${BASE_URL}/schedules`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    return handleResponse(res);
   },
+  saveSchedule: async (scheduleData) => {
+    const res = await fetch(`${BASE_URL}/schedules/${scheduleData.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scheduleData)
+    });
+    return handleResponse(res);
+  },
+  addOverride: async (scheduleId, overrideData) => {
+    const res = await fetch(`${BASE_URL}/schedules/${scheduleId}/overrides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(overrideData)
+    });
+    return handleResponse(res);
+  },
+  deleteOverride: async (scheduleId, overrideId) => {
+    const res = await fetch(`${BASE_URL}/schedules/${scheduleId}/overrides/${overrideId}`, {
+      method: 'DELETE'
+    });
+    return handleResponse(res);
+  }
 };

@@ -18,16 +18,14 @@ export default function AvailabilityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
-  
 
   const [schedules, setSchedules] = useState([]);
   const [activeScheduleId, setActiveScheduleId] = useState('');
 
-  
   const [timezone, setTimezone] = useState(TIMEZONES[0]);
   const [weeklyHours, setWeeklyHours] = useState([]);
   const [overrides, setOverrides] = useState([]);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -55,7 +53,6 @@ export default function AvailabilityPage() {
     setOverrides(schedule.overrides || []);
   };
 
-  
   const handleSwitchSchedule = (id) => {
     const selected = schedules.find(s => s.id === id);
     if (selected) {
@@ -81,7 +78,6 @@ export default function AvailabilityPage() {
     }
   };
 
-
   const toggleDay = (index) => {
     setWeeklyHours(prev => {
       const newSched = [...prev];
@@ -98,11 +94,10 @@ export default function AvailabilityPage() {
     });
   };
 
-
   const handleSave = async () => {
     setIsSaving(true);
     setSaveMessage('');
-    
+
     const currentScheduleName = schedules.find(s => s.id === activeScheduleId)?.name || 'Working Hours';
 
     const scheduleDataToSave = {
@@ -115,9 +110,7 @@ export default function AvailabilityPage() {
 
     try {
       await api.saveSchedule(scheduleDataToSave);
-      
       setSchedules(prev => prev.map(s => s.id === activeScheduleId ? scheduleDataToSave : s));
-      
       setSaveMessage('Saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
@@ -128,14 +121,31 @@ export default function AvailabilityPage() {
     }
   };
 
-  // Override handlers
-  const handleAddOverride = (newOverride) => {
-    setOverrides(prev => [...prev, newOverride]);
-    setIsModalOpen(false);
+  const handleAddOverride = async (newOverride) => {
+    try {
+      setOverrides(prev => [...prev, newOverride]);
+      setIsModalOpen(false);
+      await api.addOverride(activeScheduleId, newOverride);
+      setSaveMessage('Override added!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error("Failed to add override:", error);
+      setSaveMessage('Error saving override.');
+      loadAllSchedules();
+    }
   };
 
-  const handleDeleteOverride = (id) => {
-    setOverrides(prev => prev.filter(ov => ov.id !== id));
+  const handleDeleteOverride = async (overrideId) => {
+    try {
+      setOverrides(prev => prev.filter(ov => ov.id !== overrideId));
+      await api.deleteOverride(activeScheduleId, overrideId);
+      setSaveMessage('Override deleted');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error("Failed to delete override:", error);
+      setSaveMessage('Error deleting.');
+      loadAllSchedules();
+    }
   };
 
   if (isLoading) {
@@ -144,16 +154,14 @@ export default function AvailabilityPage() {
 
   return (
     <div className="max-w-4xl mx-auto font-sans">
-      
-      {/* HEADER: Title & Multiple Schedule Selector */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           <h1 className="text-3xl font-normal text-gray-800">Availability</h1>
-          
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm">
               <span className="text-sm font-bold text-gray-500">Schedule:</span>
-              <select 
+              <select
                 value={activeScheduleId}
                 onChange={(e) => handleSwitchSchedule(e.target.value)}
                 className="text-sm font-bold text-gray-900 border-none outline-none bg-transparent cursor-pointer w-40 truncate"
@@ -171,12 +179,10 @@ export default function AvailabilityPage() {
 
         <div className="flex items-center gap-4">
           {saveMessage && <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full animate-pulse">{saveMessage}</span>}
-          <button 
+          <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`px-6 py-2.5 rounded-full text-sm font-medium transition-colors shadow-sm ${
-              isSaving ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+            className={`px-6 py-2.5 rounded-full text-sm font-medium transition-colors shadow-sm ${isSaving ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -184,16 +190,15 @@ export default function AvailabilityPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        
         {/* Tab Navigation */}
         <div className="flex gap-6 border-b border-gray-200 px-6 pt-4 bg-gray-50">
-          <button 
+          <button
             onClick={() => setActiveTab('weekly')}
             className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'weekly' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Weekly hours
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('overrides')}
             className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overrides' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
@@ -211,7 +216,7 @@ export default function AvailabilityPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 font-medium">Timezone:</span>
-                <select 
+                <select
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
                   className="text-sm font-medium text-gray-700 border border-gray-300 rounded-md px-3 py-1.5 bg-white shadow-sm outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -227,9 +232,9 @@ export default function AvailabilityPage() {
               {weeklyHours.map((slot, index) => (
                 <div key={slot.day} className="py-4 flex items-center sm:flex-row flex-col gap-4">
                   <div className="w-full sm:w-40 flex items-center gap-3">
-                    <input 
-                      type="checkbox" 
-                      checked={slot.active} 
+                    <input
+                      type="checkbox"
+                      checked={slot.active}
                       onChange={() => toggleDay(index)}
                       className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
                     />
@@ -262,7 +267,7 @@ export default function AvailabilityPage() {
                 <p className="text-gray-500 mt-2 mb-6 max-w-md mx-auto">
                   Override your availability for specific dates for this schedule.
                 </p>
-                <button 
+                <button
                   onClick={() => setIsModalOpen(true)}
                   className="px-6 py-2.5 border-2 border-blue-600 text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-colors"
                 >
@@ -273,32 +278,49 @@ export default function AvailabilityPage() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Your Overrides</h3>
-                  <button 
+                  <button
                     onClick={() => setIsModalOpen(true)}
                     className="px-4 py-2 text-blue-600 font-medium hover:bg-blue-50 rounded-full text-sm transition-colors"
                   >
                     + Add Override
                   </button>
                 </div>
-                
+
                 <div className="space-y-3">
                   {overrides.map(override => (
                     <div key={override.id} className="flex justify-between items-center p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                        <span className="font-bold text-gray-900 w-32">{new Date(override.date).toLocaleDateString()}</span>
+                        <span className="font-bold text-gray-900 w-32">
+                          {new Date(override.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            timeZone: 'UTC'
+                          })}
+                        </span>
+                        
                         {override.isAvailable ? (
-                          <span className="text-gray-600 text-sm bg-gray-100 px-3 py-1 rounded-md">
-                            Available: {override.start} - {override.end}
-                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {/* FIX: Map over the blocks array instead of looking for start/end */}
+                            {override.blocks && override.blocks.length > 0 ? (
+                              override.blocks.map((block, i) => (
+                                <span key={i} className="text-blue-700 text-sm bg-blue-50 px-3 py-1 rounded-md border border-blue-100 font-medium">
+                                  {block.start} - {block.end}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-gray-400 text-sm">No hours set</span>
+                            )}
+                          </div>
                         ) : (
-                          <span className="text-gray-500 text-sm italic bg-gray-50 px-3 py-1 rounded-md">
+                          <span className="text-gray-500 text-sm italic bg-gray-50 px-3 py-1 rounded-md border border-gray-100">
                             Unavailable
                           </span>
                         )}
                       </div>
-                      <button 
+                      <button
                         onClick={() => handleDeleteOverride(override.id)}
-                        className="text-gray-400 hover:text-red-600 px-2 py-1"
+                        className="text-gray-400 hover:text-red-600 px-2 py-1 transition-colors"
                         title="Delete override"
                       >
                         🗑️
@@ -312,7 +334,7 @@ export default function AvailabilityPage() {
         )}
       </div>
 
-      <OverrideModal 
+      <OverrideModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleAddOverride}

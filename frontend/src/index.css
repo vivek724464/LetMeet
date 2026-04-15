@@ -1,6 +1,42 @@
 @import "tailwindcss";
-html {
-  font-size: 18px; 
+
+@layer base {
+  html {
+    font-size: 18px; 
+  }
+
+  button, 
+  a, 
+  [role="button"],
+  select,
+  label,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"],
+  input[type="color"],
+  input[type="date"],
+  input[type="time"] {
+    cursor: pointer;
+  }
+
+  
+  input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    cursor: text;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @layer utilities {

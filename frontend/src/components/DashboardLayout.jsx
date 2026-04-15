@@ -37,12 +37,6 @@ export default function DashboardLayout() {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
           <div className="md:hidden text-xl font-bold text-blue-600">LetMeet</div>
           <div className="ml-auto flex items-center space-x-4">
-            <Link to="/book/sample" className="text-sm font-medium text-blue-600 hover:underline mr-4">
-              View Public Page ↗
-            </Link>
-            <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm">
-              JD
-            </div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">
